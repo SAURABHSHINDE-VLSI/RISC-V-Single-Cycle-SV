@@ -61,6 +61,13 @@ A successful Vivado behavioral simulation prints:
 PASS: Data_Memory read and write tests completed.
 ```
 
+### Console output
+
+The Vivado simulator console confirms that the initial load and the clocked
+store/load checks completed successfully.
+
+![Data-memory console output](images/data_memory/console_pass.png)
+
 ### Waveform
 
 At the start of the simulation, address `112` reads the initialized value
@@ -68,3 +75,11 @@ At the start of the simulation, address `112` reads the initialized value
 `32'h1234_5678` on a rising edge, and reads the same value back.
 
 ![Data-memory waveform](images/data_memory/waveform.png)
+
+### Synthesized hardware view
+
+Vivado's RTL schematic confirms that the data-memory module is synthesizable.
+It shows the memory array, clocked write path, address input, write-enable
+control, and read-data output.
+
+![Data-memory schematic](images/data_memory/schematic.png)
