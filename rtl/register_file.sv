@@ -5,13 +5,13 @@
 
 module register_file (
   input  logic        clk,
-  input  logic        we3,     // write enable (from Control Unit's RegWrite)
-  input  logic [4:0]  a1,      // read address 1 (rs1)
-  input  logic [4:0]  a2,      // read address 2 (rs2)
-  input  logic [4:0]  a3,      // write address  (rd)
-  input  logic [31:0] wd3,     // write data
-  output logic [31:0] rd1,     // read data 1
-  output logic [31:0] rd2      // read data 2
+  input  logic        WE3,     // write enable (from Control Unit's RegWrite)
+  input  logic [4:0]  A1,      // read address 1 (rs1)
+  input  logic [4:0]  A2,      // read address 2 (rs2)
+  input  logic [4:0]  A3,      // write address  (rd)
+  input  logic [31:0] WD3,     // write data
+  output logic [31:0] RD1,     // read data 1
+  output logic [31:0] RD2      // read data 2
 );
 
   // --- Unpacked array: 32 separate 32-bit registers ---
@@ -23,14 +23,14 @@ module register_file (
   // --- Sequential write: always_ff = "this block has memory, triggered by a clock edge" ---
   // Only x0 (address 0) is protected; every other register is freely writable.
   always_ff @(posedge clk) begin
-    if (we3 && a3 != 5'd0) begin
-      regs[a3] <= wd3;   // non-blocking assignment: update happens "at the clock edge"
+    if (WE3 && A3 != 5'd0) begin
+      regs[A3] <= WD3;   // non-blocking assignment: update happens "at the clock edge"
     end
   end
 
   // --- Combinational reads: no clock, output follows input instantly ---
   // x0 always reads as zero, regardless of what (if anything) was ever written to it.
-  assign rd1 = (a1 == 5'd0) ? 32'd0 : regs[a1];
-  assign rd2 = (a2 == 5'd0) ? 32'd0 : regs[a2];
+  assign RD1 = (A1 == 5'd0) ? 32'd0 : regs[A1];
+  assign RD2 = (A2 == 5'd0) ? 32'd0 : regs[A2];
 
 endmodule
