@@ -8,20 +8,29 @@
 // clock EDGES, not just fixed delays, or writes won't actually happen.
 // This is the standard pattern for testing any sequential (clocked) module.
 
+`timescale 1ns / 1ps
+
 module register_file_tb;
 
   logic        clk;
-  logic        we3;
-  logic [4:0]  a1, a2, a3;
-  logic [31:0] wd3;
-  logic [31:0] rd1, rd2;
+  logic        WE3;
+  logic [4:0]  A1, A2, A3;
+  logic [31:0] WD3;
+  logic [31:0] RD1, RD2;
 
   int errors = 0;
 
+  // DUT port names must exactly match register_file.sv.
+  // SystemVerilog is case-sensitive: WE3 is different from we3.
   register_file dut (
-    .clk(clk), .we3(we3),
-    .a1(a1), .a2(a2), .a3(a3), .wd3(wd3),
-    .rd1(rd1), .rd2(rd2)
+    .clk(clk),
+    .WE3(WE3),
+    .A1 (A1),
+    .A2 (A2),
+    .A3 (A3),
+    .WD3(WD3),
+    .RD1(RD1),
+    .RD2(RD2)
   );
 
   // --- Clock generator ---
@@ -34,66 +43,82 @@ module register_file_tb;
   // --- Helper task: perform a clocked write ---
   // "automatic" (same meaning as in alu_tb.sv's check task): each call gets
   // its own local variables, so calls don't interfere if ever run concurrently.
-  task automatic write_reg(input logic [4:0] addr, input logic [31:0] data);
+  task automatic write_reg(
+    input logic [4:0]  addr,
+    input logic [31:0] data
+  );
     @(posedge clk);       // wait for a rising edge...
-    a3  = addr;
-    wd3 = data;
-    we3 = 1'b1;
+    A3  = addr;
+    WD3 = data;
+    WE3 = 1'b1;
     @(posedge clk);       // ...the write happens ON this edge (always_ff in the DUT)
-    we3 = 1'b0;            // drop write-enable so we don't accidentally write again
+    WE3 = 1'b0;           // drop write-enable so we don't accidentally write again
   endtask
 
   // --- Helper task: check both read ports at once ---
   task automatic check_read(
-    input  logic [4:0]  addr1,
-    input  logic [4:0]  addr2,
-    input  logic [31:0] exp1,
-    input  logic [31:0] exp2,
-    input  string        name
+    input logic [4:0]  addr1,
+    input logic [4:0]  addr2,
+    input logic [31:0] exp1,
+    input logic [31:0] exp2,
+    input string       name
   );
-    a1 = addr1;
-    a2 = addr2;
+    A1 = addr1;
+    A2 = addr2;
     #1; // reads are combinational (assign statements) -> settle after a tiny delay
-    if (rd1 !== exp1 || rd2 !== exp2) begin
-      $display("FAIL [%s]: rd1=0x%08h (exp 0x%08h)  rd2=0x%08h (exp 0x%08h)",
-                name, rd1, exp1, rd2, exp2);
+
+    if (RD1 !== exp1 || RD2 !== exp2) begin
+      $display("FAIL [%s]: RD1=0x%08h (exp 0x%08h)  RD2=0x%08h (exp 0x%08h)",
+                name, RD1, exp1, RD2, exp2);
       errors++;
-    end else begin
-      $display("PASS [%s]: rd1=0x%08h  rd2=0x%08h", name, rd1, rd2);
+    end
+    else begin
+      $display("PASS [%s]: RD1=0x%08h  RD2=0x%08h", name, RD1, RD2);
     end
   endtask
 
   initial begin
-    we3 = 0; a1 = 0; a2 = 0; a3 = 0; wd3 = 0;
+    WE3 = 0;
+    A1  = 0;
+    A2  = 0;
+    A3  = 0;
+    WD3 = 0;
 
     // --- x0 must read as zero before anything is written ---
     check_read(5'd0, 5'd0, 32'd0, 32'd0, "x0 initial (both ports)");
 
     // --- Attempt to write x0 -> must be silently ignored ---
-    write_reg(5'd0, 32'hDEADBEEF);
-    check_read(5'd0, 5'd0, 32'd0, 32'd0, "x0 after write attempt (still zero)");
+    write_reg(5'd0, 32'hDEAD_BEEF);
+    check_read(5'd0, 5'd0, 32'd0, 32'd0,
+               "x0 after write attempt (still zero)");
 
     // --- Write x5, read it back on port 1 ---
-    write_reg(5'd5, 32'hAAAA5555);
-    check_read(5'd5, 5'd0, 32'hAAAA5555, 32'd0, "x5 write then read (port1)");
+    write_reg(5'd5, 32'hAAAA_5555);
+    check_read(5'd5, 5'd0, 32'hAAAA_5555, 32'd0,
+               "x5 write then read (port1)");
 
     // --- Write x10 (different register), confirm x5 is undisturbed ---
-    write_reg(5'd10, 32'h12345678);
-    check_read(5'd5, 5'd10, 32'hAAAA5555, 32'h12345678, "x5 and x10 simultaneous read");
+    write_reg(5'd10, 32'h1234_5678);
+    check_read(5'd5, 5'd10, 32'hAAAA_5555, 32'h1234_5678,
+               "x5 and x10 simultaneous read");
 
-    // --- we3=0 write attempt: must NOT overwrite existing data ---
-    // (An unwritten register has no defined value in a design with no reset --
-    //  so we write a KNOWN value first, then prove a disabled write can't change it.)
-    write_reg(5'd7, 32'h11112222);
-    a3  = 5'd7;
-    wd3 = 32'hFFFFFFFF;
-    we3 = 1'b0;
+    // --- WE3=0 write attempt: must NOT overwrite existing data ---
+    // An unwritten register has no defined value in a design with no reset.
+    // Therefore write a KNOWN value first, then prove a disabled write cannot
+    // change it.
+    write_reg(5'd7, 32'h1111_2222);
+    A3  = 5'd7;
+    WD3 = 32'hFFFF_FFFF;
+    WE3 = 1'b0;
     @(posedge clk);
-    check_read(5'd7, 5'd0, 32'h11112222, 32'd0, "x7 unchanged (we3 was low)");
+
+    check_read(5'd7, 5'd0, 32'h1111_2222, 32'd0,
+               "x7 unchanged (WE3 was low)");
 
     // --- Overwrite x5 with a new value ---
-    write_reg(5'd5, 32'hCAFEF00D);
-    check_read(5'd5, 5'd10, 32'hCAFEF00D, 32'h12345678, "x5 overwritten, x10 unchanged");
+    write_reg(5'd5, 32'hCAFE_F00D);
+    check_read(5'd5, 5'd10, 32'hCAFE_F00D, 32'h1234_5678,
+               "x5 overwritten, x10 unchanged");
 
     if (errors == 0)
       $display("\n=== ALL TESTS PASSED ===");
