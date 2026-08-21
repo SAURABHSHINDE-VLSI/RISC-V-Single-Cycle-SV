@@ -15,50 +15,51 @@
 
 import riscv_pkg::*;
 
-module alu (
-  input  logic [31:0] a,
-  input  logic [31:0] b,
-  input  alu_op_t      alu_control,
-  output logic [31:0] result,
-  output logic         zero,
-  output logic         negative,
-  output logic         carry,
-  output logic         overflow
+
+module ALU (
+  input  logic [31:0] A,
+  input  logic [31:0] B,
+  input  alu_op_t     ALUControl,
+  output logic [31:0] Result,
+  output logic        Zero,
+  output logic        Negative,
+  output logic        Carry,
+  output logic        OverFlow
 );
 
-  logic [32:0] sum_ext;   // 33 bits: {carry_out, 32-bit sum}
-  logic [31:0] sum;
-  logic        cout;
+  logic [32:0] Sum_ext;
+  logic [31:0] Sum;
+  logic        Cout;
 
-  logic [2:0] alu_control_bits;
-  assign alu_control_bits = alu_control;
+  logic [2:0] ALUControl_bits;
+  assign ALUControl_bits = ALUControl;
 
   // Adder/subtractor: b is two's-complement negated for subtract
   // (same trick the course's Verilog ALU uses: A + (~B + 1))
-  assign sum_ext = (alu_control_bits[0] == 1'b0) ? ({1'b0, a} + {1'b0, b})
-                                                  : ({1'b0, a} + {1'b0, ~b} + 33'b1);
-  assign {cout, sum} = sum_ext;
+  assign Sum_ext = (ALUControl_bits[0] == 1'b0) ? ({1'b0, A} + {1'b0, B})
+                                                  : ({1'b0, A} + {1'b0, ~B} + 33'b1);
+  assign {Cout, Sum} = Sum_ext;
 
-  logic slt_result_bit;
-  assign slt_result_bit = sum[31];
+  logic SLT_result_bit;
+  assign SLT_result_bit = Sum[31];
 
   always_comb begin
-    case (alu_control_bits)
-      3'b000:  result = sum;               // ALU_ADD
-      3'b001:  result = sum;               // ALU_SUB
-      3'b010:  result = a & b;             // ALU_AND
-      3'b011:  result = a | b;             // ALU_OR
-      3'b101:  result = slt_result_bit ? 32'd1 : 32'd0;  // ALU_SLT
-      default: result = 32'b0;
+    case (ALUControl_bits)
+      3'b000: Result = Sum;               // ALU_ADD
+      3'b001: Result = Sum;               // ALU_SUB
+      3'b010: Result = A & B;             // ALU_AND
+      3'b011: Result = A | B;             // ALU_OR
+      3'b101: Result = SLT_result_bit ? 32'd1 : 32'd0;  // ALU_SLT
+      default: Result = 32'b0;
     endcase
   end
 
-  // Flags — meaningful only for add/subtract (matches course's Verilog reference)
-  assign overflow = (sum[31] ^ a[31])
-                   & ~(alu_control_bits[0] ^ b[31] ^ a[31])
-                   & ~alu_control_bits[1];
-  assign carry    = ~alu_control_bits[1] & cout;
-  assign zero     = (result == 32'b0);
-  assign negative = result[31];
+  // Flags  meaningful only for add/subtract (matches course's Verilog reference)
+  assign OverFlow = (Sum[31] ^ A[31])
+                   & ~(ALUControl_bits[0] ^ B[31] ^ A[31])
+                   & ~ALUControl_bits[1];
+  assign Carry    = ~ALUControl_bits[1] & Cout;
+  assign Zero     = (Result == 32'b0);
+  assign Negative = Result[31];
 
 endmodule

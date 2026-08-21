@@ -3,7 +3,7 @@
 // Two combinational read ports, one clocked write port.
 // x0 is hardwired to zero (writes to it are ignored, reads always return 0).
 
-module register_file (
+module Register_File (
   input  logic        clk,
   input  logic        WE3,     // write enable (from Control Unit's RegWrite)
   input  logic [4:0]  A1,      // read address 1 (rs1)

@@ -1,4 +1,4 @@
-module instruction_memory (
+module Instruction_Memory (
     input  logic [31:0] A,
     output logic [31:0] RD
 );
@@ -8,7 +8,7 @@ module instruction_memory (
 
     // A is a byte address.  A[31:2] is the instruction-word address.
     always_comb begin
-        RD = mem[A[31:2]];
+        RD = mem[A[11:2]];
     end
 
     // Load program instructions from a hexadecimal text file.
