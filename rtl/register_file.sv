@@ -20,6 +20,10 @@ module Register_File (
   // Think of it as: 32 boxes, each box holds one 32-bit value.
   logic [31:0] regs [31:0];
 
+  initial begin
+    regs = '{default: 32'b0};
+  end
+
   // --- Sequential write: always_ff = "this block has memory, triggered by a clock edge" ---
   // Only x0 (address 0) is protected; every other register is freely writable.
   always_ff @(posedge clk) begin

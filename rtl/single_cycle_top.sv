@@ -8,7 +8,8 @@
 
 module single_cycle_top (
     input logic clk,
-    input logic rst 
+    input logic rst,
+    output logic [31:0] debug_pc
 );
 
     logic [31:0] PC_Top;
@@ -19,6 +20,7 @@ module single_cycle_top (
     logic [31:0] ALUResult;
     logic [31:0] ReadData;
     logic [31:0] PCPlus4;
+    logic [31:0] PCBranch;
     logic [31:0] SrcB;
     logic [31:0] Result;
 
@@ -28,17 +30,22 @@ module single_cycle_top (
     logic ResultSrc;
     logic [1:0] ImmSrc;
     logic [2:0] ALUControl_Top;
+    logic Branch;
+    logic PCSrc;
+    logic Zero;
 
     // Program Counter: stores the address of the current instruction
     PC_Module PC (
         .clk(clk),
         .rst(rst),
         .PC(PC_Top),
-        .PC_Next(PCPlus4)
+        .PC_Next(PCSrc ? PCBranch : PCPlus4)
     );
 
     // PC Adder: calculates the address of the next sequential instruction
     assign PCPlus4 = PC_Top + 32'd4;
+    assign PCBranch = PC_Top + Imm_Ext_Top;
+    assign debug_pc = PC_Top;
 
     // Instruction Memory: fetches the instruction using the PC address
     Instruction_Memory instruction_memory (
@@ -50,7 +57,7 @@ module single_cycle_top (
     Register_File register_file (
         .clk(clk),
         .WE3(RegWrite),
-        .WD3Result(),
+        .WD3(Result) ,
         .A1(RD_Instr[19:15]),
         .A2(RD_Instr[24:20]),
         .A3(RD_Instr[11:7]),
@@ -76,19 +83,21 @@ module single_cycle_top (
         .ALUControl(ALUControl_Top),
         .OverFlow(),
         .Carry(),
-        .Zero(),
+        .Zero(Zero),
         .Negative()
     );
 
     // Control Unit: generates control signals from the instruction fields
     Control_Unit_Top Control_Unit_Top (
         .Op(RD_Instr[6:0]),
+        .Zero(Zero),
         .RegWrite(RegWrite),
         .ImmSrc(ImmSrc),
         .ALUSrc(ALUSrc),
         .MemWrite(MemWrite),
         .ResultSrc(ResultSrc),
-        .Branch(),
+        .Branch(Branch),
+        .PCSrc(PCSrc),
         .funct3(RD_Instr[14:12]),
         .funct7(RD_Instr[31:25]),
         .ALUControl(ALUControl_Top)
@@ -100,8 +109,8 @@ module single_cycle_top (
         .WE(MemWrite),
         .WD(RD2_Top),
         .A(ALUResult),
-        
-    );.RD(ReadData)
+        .RD(ReadData)
+    );
 
     // MUX: selects ALU result or memory data for register write-back
     assign Result = ResultSrc ? ReadData : ALUResult;

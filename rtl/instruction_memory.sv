@@ -13,7 +13,8 @@ module Instruction_Memory (
 
     // Load program instructions from a hexadecimal text file.
     initial begin
-       $readmemh("memfile.mem", mem);
+         mem = '{default: 32'b0};
+         $readmemh("C:/Projects/RISC-V-Single-Cycle-SV/tb/memfile.mem", mem);
     end
 
 endmodule
