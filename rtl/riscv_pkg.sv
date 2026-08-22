@@ -7,7 +7,7 @@ package riscv_pkg;
   // ---------------------------------------------------------------
   // ALU operation select — decoded by ALU Control from funct3/funct7/opcode
   // ---------------------------------------------------------------
-  // Encoding matches the MERL course ALU Decoder truth table exactly
+  
   // (ALUOp/funct3/funct7 -> ALUControl), so Control Unit output can be
   // used directly without re-mapping.
   typedef enum logic [2:0] {
@@ -17,6 +17,12 @@ package riscv_pkg;
     ALU_OR  = 3'b011,   // or
     ALU_SLT = 3'b101    // slt
   } alu_op_t;
+
+  // NOTE: imm_sel_t, ctrl_t, and decoded_instr_t below are all wired into
+  // the single-cycle datapath — control_unit_top emits ctrl_t, and the top
+  // uses decoded_instr_t and imm_sel_t. A few ctrl_t fields are forward-
+  // looking for the planned 5-stage pipeline / jumps: jump is tied low, and
+  // result_src's 2'b10 (PC+4) encoding is reserved for jal/jalr.
 
   // ---------------------------------------------------------------
   // Immediate format select — tells the Immediate Generator how to

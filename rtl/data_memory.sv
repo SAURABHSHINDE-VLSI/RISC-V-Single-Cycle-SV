@@ -37,6 +37,7 @@ module Data_Memory (
     // return decimal 32 before any store is performed.  Remove or replace this
     // block later when loading memory contents from a program data file.
     initial begin
+        mem = '{default: 32'b0};
         mem[28] = 32'h0000_0020;
     end
 

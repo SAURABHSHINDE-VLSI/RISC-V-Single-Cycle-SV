@@ -6,9 +6,11 @@
 `include "control_unit_top.sv"
 `include "data_memory.sv"
 
+import riscv_pkg::*;
+
 module single_cycle_top (
-    input logic clk,
-    input logic rst,
+    input  logic        clk,
+    input  logic        rst,
     output logic [31:0] debug_pc
 );
 
@@ -24,15 +26,22 @@ module single_cycle_top (
     logic [31:0] SrcB;
     logic [31:0] Result;
 
-    logic RegWrite;
-    logic MemWrite;
-    logic ALUSrc;
-    logic ResultSrc;
-    logic [1:0] ImmSrc;
-    logic [2:0] ALUControl_Top;
-    logic Branch;
-    logic PCSrc;
-    logic Zero;
+    logic        Zero;
+    logic        PCSrc;
+
+    // Decoded instruction fields (decoded_instr_t from riscv_pkg)
+    decoded_instr_t dec;
+    always_comb begin
+        dec.opcode = RD_Instr[6:0];
+        dec.rd     = RD_Instr[11:7];
+        dec.funct3 = RD_Instr[14:12];
+        dec.rs1    = RD_Instr[19:15];
+        dec.rs2    = RD_Instr[24:20];
+        dec.funct7 = RD_Instr[31:25];
+    end
+
+    // Bundled control signals (ctrl_t from riscv_pkg)
+    ctrl_t ctrl;
 
     // Program Counter: stores the address of the current instruction
     PC_Module PC (
@@ -42,8 +51,8 @@ module single_cycle_top (
         .PC_Next(PCSrc ? PCBranch : PCPlus4)
     );
 
-    // PC Adder: calculates the address of the next sequential instruction
-    assign PCPlus4 = PC_Top + 32'd4;
+    // PC adders: next sequential instruction and branch target
+    assign PCPlus4  = PC_Top + 32'd4;
     assign PCBranch = PC_Top + Imm_Ext_Top;
     assign debug_pc = PC_Top;
 
@@ -56,11 +65,11 @@ module single_cycle_top (
     // Register File: reads rs1 and rs2 and writes the result into rd
     Register_File register_file (
         .clk(clk),
-        .WE3(RegWrite),
-        .WD3(Result) ,
-        .A1(RD_Instr[19:15]),
-        .A2(RD_Instr[24:20]),
-        .A3(RD_Instr[11:7]),
+        .WE3(ctrl.reg_write),
+        .WD3(Result),
+        .A1(dec.rs1),
+        .A2(dec.rs2),
+        .A3(dec.rd),
         .RD1(RD1_Top),
         .RD2(RD2_Top)
     );
@@ -68,51 +77,51 @@ module single_cycle_top (
     // Sign Extension: generates the 32-bit immediate from the instruction
     Sign_Extend sign_extend (
         .In(RD_Instr),
-        .ImmSrc(ImmSrc),
+        .ImmSrc(ctrl.imm_sel),
         .Imm_Ext(Imm_Ext_Top)
     );
 
     // MUX: selects register data or immediate as ALU input B
-    assign SrcB = ALUSrc ? Imm_Ext_Top : RD2_Top;
+    assign SrcB = ctrl.alu_src ? Imm_Ext_Top : RD2_Top;
 
     // ALU: performs arithmetic and logical operations
     ALU ALU (
         .A(RD1_Top),
         .B(SrcB),
         .Result(ALUResult),
-        .ALUControl(ALUControl_Top),
+        .ALUControl(ctrl.alu_ctrl),
         .OverFlow(),
         .Carry(),
         .Zero(Zero),
         .Negative()
     );
 
-    // Control Unit: generates control signals from the instruction fields
+    // Control Unit: decodes the instruction into the ctrl_t bundle
     Control_Unit_Top Control_Unit_Top (
-        .Op(RD_Instr[6:0]),
+        .dec(dec),
         .Zero(Zero),
-        .RegWrite(RegWrite),
-        .ImmSrc(ImmSrc),
-        .ALUSrc(ALUSrc),
-        .MemWrite(MemWrite),
-        .ResultSrc(ResultSrc),
-        .Branch(Branch),
-        .PCSrc(PCSrc),
-        .funct3(RD_Instr[14:12]),
-        .funct7(RD_Instr[31:25]),
-        .ALUControl(ALUControl_Top)
+        .ctrl(ctrl),
+        .PCSrc(PCSrc)
     );
 
     // Data Memory: handles load and store operations
     Data_Memory data_memory (
         .clk(clk),
-        .WE(MemWrite),
+        .WE(ctrl.mem_write),
         .WD(RD2_Top),
         .A(ALUResult),
         .RD(ReadData)
     );
 
-    // MUX: selects ALU result or memory data for register write-back
-    assign Result = ResultSrc ? ReadData : ALUResult;
+    // MUX: write-back source select
+    //   00 = ALU result, 01 = memory data, 10 = PC+4 (reserved for jal/jalr)
+    always_comb begin
+        case (ctrl.result_src)
+            2'b00:   Result = ALUResult;
+            2'b01:   Result = ReadData;
+            2'b10:   Result = PCPlus4;
+            default: Result = ALUResult;
+        endcase
+    end
 
 endmodule
