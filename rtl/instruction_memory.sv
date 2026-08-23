@@ -12,9 +12,12 @@ module Instruction_Memory (
     end
 
     // Load program instructions from a hexadecimal text file.
+    // Bare filename (no absolute path) so this works on any machine: add
+    // tb/memfile.mem as a Vivado *simulation source* and xsim resolves it by
+    // name from the simulation run directory.
     initial begin
          mem = '{default: 32'b0};
-         $readmemh("C:/Projects/RISC-V-Single-Cycle-SV/tb/memfile.mem", mem);
+         $readmemh("memfile.mem", mem);
     end
 
 endmodule

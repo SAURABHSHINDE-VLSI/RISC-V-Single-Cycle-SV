@@ -10,12 +10,16 @@ package riscv_pkg;
   
   // (ALUOp/funct3/funct7 -> ALUControl), so Control Unit output can be
   // used directly without re-mapping.
-  typedef enum logic [2:0] {
-    ALU_ADD = 3'b000,   // lw, sw, addi, add
-    ALU_SUB = 3'b001,   // beq, sub
-    ALU_AND = 3'b010,   // and
-    ALU_OR  = 3'b011,   // or
-    ALU_SLT = 3'b101    // slt
+  typedef enum logic [3:0] {
+    ALU_ADD = 4'b0000,   // lw, sw, addi, add
+    ALU_SUB = 4'b0001,   // beq, bne, sub
+    ALU_AND = 4'b0010,   // and, andi
+    ALU_OR  = 4'b0011,   // or,  ori
+    ALU_XOR = 4'b0100,   // xor, xori
+    ALU_SLT = 4'b0101,   // slt, slti
+    ALU_SLL = 4'b0110,   // sll, slli   (shift left  logical)
+    ALU_SRL = 4'b0111,   // srl, srli   (shift right logical)
+    ALU_SRA = 4'b1000    // sra, srai   (shift right arithmetic)
   } alu_op_t;
 
   // NOTE: imm_sel_t, ctrl_t, and decoded_instr_t below are all wired into

@@ -38,9 +38,17 @@ module control_unit_top_tb;
         check(7'b0000011, 3'b010, 7'b0000000, 1, 1, 0, 2'b01, 0, 0, IMM_I, ALU_ADD, "load control");
         check(7'b0100011, 3'b010, 7'b0000000, 0, 1, 1, 2'b00, 0, 0, IMM_S, ALU_ADD, "store control");
         Zero = 1'b0;
-        check(7'b1100011, 3'b000, 7'b0000000, 0, 0, 0, 2'b00, 1, 0, IMM_B, ALU_SUB, "branch not taken");
+        check(7'b1100011, 3'b000, 7'b0000000, 0, 0, 0, 2'b00, 1, 0, IMM_B, ALU_SUB, "beq not taken (Zero=0)");
         Zero = 1'b1;
-        check(7'b1100011, 3'b000, 7'b0000000, 0, 0, 0, 2'b00, 1, 1, IMM_B, ALU_SUB, "branch taken");
+        check(7'b1100011, 3'b000, 7'b0000000, 0, 0, 0, 2'b00, 1, 1, IMM_B, ALU_SUB, "beq taken (Zero=1)");
+        // bne (funct3=001): opposite polarity to beq
+        Zero = 1'b1;  // operands equal -> bne must NOT branch
+        check(7'b1100011, 3'b001, 7'b0000000, 0, 0, 0, 2'b00, 1, 0, IMM_B, ALU_SUB, "bne not taken (equal)");
+        Zero = 1'b0;  // operands differ -> bne branches
+        check(7'b1100011, 3'b001, 7'b0000000, 0, 0, 0, 2'b00, 1, 1, IMM_B, ALU_SUB, "bne taken (not equal)");
+        // jal: unconditional jump (PCSrc=1), write PC+4 (ResultSrc=10), J-immediate
+        Zero = 1'b0;
+        check(7'b1101111, 3'b000, 7'b0000000, 1, 0, 0, 2'b10, 0, 1, IMM_J, ALU_ADD, "jal");
         if (errors == 0) $display("=== CONTROL UNIT TESTS PASSED ===");
         else $display("=== CONTROL UNIT TESTS FAILED: %0d error(s) ===", errors);
         $finish;

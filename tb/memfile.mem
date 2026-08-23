@@ -1,4 +1,39 @@
-00500093
-00A00113
-002081B3
-0000006F
+// ===== GROUP 1  I-TYPE ALU  (register OP immediate) =====
+00500093   // addi x1, x0, 5     -> x1 = 5
+FF800113   // addi x2, x0, -8    -> x2 = -8  (0xFFFFFFF8, negative)
+0030F193   // andi x3, x1, 3     -> x3 = 5 & 3 = 1
+0020E213   // ori  x4, x1, 2     -> x4 = 5 | 2 = 7
+0070C293   // xori x5, x1, 7     -> x5 = 5 ^ 7 = 2
+00209313   // slli x6, x1, 2     -> x6 = 5 << 2 = 20
+0010D393   // srli x7, x1, 1     -> x7 = 5 >> 1 = 2  (logical)
+40115413   // srai x8, x2, 1     -> x8 = -8 >>> 1 = -4 (keeps sign)
+
+// ===== GROUP 2  R-TYPE      (register OP register) =====
+006084B3   // add  x9,  x1, x6   -> x9  = 5 + 20 = 25
+40130533   // sub  x10, x6, x1   -> x10 = 20 - 5 = 15
+0040F5B3   // and  x11, x1, x4   -> x11 = 5 & 7 = 5
+0020E633   // or   x12, x1, x2   -> x12 = 5 | -8 = -3 (0xFFFFFFFD)
+0040C6B3   // xor  x13, x1, x4   -> x13 = 5 ^ 7 = 2
+00109733   // sll  x14, x1, x1   -> x14 = 5 << 5 = 160
+001357B3   // srl  x15, x6, x1   -> x15 = 20 >> 5 = 0
+40115833   // sra  x16, x2, x1   -> x16 = -8 >>> 5 = -1 (0xFFFFFFFF)
+001128B3   // slt  x17, x2, x1   -> x17 = (-8 < 5) = 1  (signed)
+
+// ===== GROUP 3  MEMORY      (store, then load back) =====
+00902023   // sw   x9, 0(x0)     -> mem[0] = 25
+00002903   // lw   x18, 0(x0)    -> x18 = mem[0] = 25
+
+// ===== GROUP 4  BRANCHES    (beq / bne, taken + not-taken) =====
+00208463   // beq  x1, x2, +8    -> 5 == -8? NO  -> NOT taken, fall through
+00209463   // bne  x1, x2, +8    -> 5 != -8? YES -> TAKEN, skip next (trap)
+06300993   // addi x19, x0, 99   -> TRAP: skipped by bne above (x19 stays 0)
+00108463   // beq  x1, x1, +8    -> 5 == 5?  YES -> TAKEN, skip next (trap)
+06300A13   // addi x20, x0, 99   -> TRAP: skipped by beq above (x20 stays 0)
+00109463   // bne  x1, x1, +8    -> 5 != 5?  NO  -> NOT taken, fall through
+
+// ===== GROUP 5  JUMP-AND-LINK (jal) =====
+00800AEF   // jal  x21, +8       -> jump +8, x21 = PC+4 (return addr), skip trap
+06300B13   // addi x22, x0, 99   -> TRAP: skipped by jal above (x22 stays 0)
+
+// ===== HALT =====
+00000063   // beq  x0, x0, 0     -> halt (branches to itself)

@@ -1,2 +1,10 @@
 riscv_soc_proj/
 riscv_sc_proj/
+
+# Simulation / Vivado build artifacts
+*.vcd
+*.jou
+*.log
+*.wdb
+.Xil/
+xsim.dir/
