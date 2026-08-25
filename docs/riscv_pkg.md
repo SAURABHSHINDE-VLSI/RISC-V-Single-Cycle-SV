@@ -128,7 +128,7 @@ design never has to slice bit ranges by hand.
   [Sign Extend](sign_extend.md), [Control Unit (top)](control_unit_top.md),
   [Single-Cycle Top](single_cycle_top.md).
 - See the per-instruction walkthroughs in
-  [`datapath_example/`](../datapath_example/README.md) to watch these signals
+  [`instructions_type/`](../instructions_type/README.md) to watch these signals
   take real values.
 
 > This module is a pure type/constant package. It has no ports, no testbench,

@@ -125,5 +125,5 @@ mux, and the shift/logic paths.
 - Operation encoding: [riscv_pkg](riscv_pkg.md)
 - Chooses the operation: [ALU Decoder](alu_decoder.md)
 - Integrated in: [Single-Cycle Top](single_cycle_top.md)
-- In action: [R-type](../datapath_example/R-type.md),
-  [I-type](../datapath_example/I-type.md)
+- In action: [R-type](../instructions_type/R-type.md),
+  [I-type](../instructions_type/I-type.md)

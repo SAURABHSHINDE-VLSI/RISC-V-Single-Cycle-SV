@@ -130,5 +130,5 @@ the `PCSrc` OR/AND resolution gate.
 - Parent: [Control Unit (top)](control_unit_top.md)
 - Sibling: [ALU Decoder](alu_decoder.md)
 - Types: [riscv_pkg](riscv_pkg.md)
-- Branch/jump in action: [B-type](../datapath_example/B-type.md),
-  [J-type](../datapath_example/J-type.md)
+- Branch/jump in action: [B-type](../instructions_type/B-type.md),
+  [J-type](../instructions_type/J-type.md)

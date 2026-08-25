@@ -129,5 +129,5 @@ Vivado's RTL schematic — the nested `ALUOp`/`funct3` mux tree producing
 - Sibling: [Main Decoder](main_decoder.md)
 - Consumer: [ALU](alu.md)
 - Types: [riscv_pkg](riscv_pkg.md)
-- In action: [R-type](../datapath_example/R-type.md),
-  [I-type](../datapath_example/I-type.md)
+- In action: [R-type](../instructions_type/R-type.md),
+  [I-type](../instructions_type/I-type.md)

@@ -46,41 +46,9 @@ unused.
 
 ## Architecture
 
-```
-                 PCSrc
-                   │
-         PC+4 ─►┌──┴──┐
-                │ MUX │─► PC_Next ─► ┌────┐ ─► PC ─┬─────────────────────────┐
-      PCBranch ─►└─────┘             │ PC │        │                         │
-                                     └────┘        ▼                         │
-                                            ┌─────────────┐                  │
-                                            │ Instruction │─► instruction ─┐ │
-                                            │   Memory    │                │ │
-                                            └─────────────┘                │ │
-             ┌─────────────────────────────────────────────┬──────────────┤ │
-             ▼                     ▼                        ▼              │ │
-     ┌───────────────┐    ┌───────────────┐        ┌───────────────┐      │ │
-     │ Control Unit  │    │ Register File │        │  Sign Extend  │      │ │
-     │  ctrl_t,PCSrc │    │  RD1, RD2     │        │   Imm_Ext     │      │ │
-     └───────┬───────┘    └───┬───────┬───┘        └───────┬───────┘      │ │
-        ctrl │            RD1 │   RD2 │        alu_src ─────┤              │ │
-             │                │       ▼                     ▼              │ │
-             │                │   ┌───────┐          ┌────────────┐        │ │
-             │                │   │  MUX  │◄─ imm ───│            │        │ │
-             │                │   └───┬───┘          └────────────┘        │ │
-             │                ▼       ▼                                    │ │
-             │            ┌───────────────┐                               │ │
-             │     A ────►│      ALU      │─► ALUResult ─┬─► Data Memory ──┤ │
-             │            │   + Zero flag │              │      │ ReadData │ │
-             │            └───────────────┘              │      ▼          │ │
-             │                                    ┌──────────────────────┐ │ │
-             │                          result_src│ ALU / mem / PC+4  MUX │ │ │
-             │                                    └───────────┬──────────┘ │ │
-             │                                        Result  │            │ │
-             └────────────────────────────────────────────────► write rd ─┘ │
-                                                                             │
-   (full, annotated version in docs/single_cycle_top.md) ────────────────────┘
-```
+![RV32I single-cycle datapath](docs/images/datapath.jpeg)
+
+*The single-cycle RV32I datapath (Harris & Harris organization). The control unit decodes the instruction and drives `PCSrc`, `ResultSrc`, `MemWrite`, `ALUControl`, `ALUSrc`, `ImmSrc`, and `RegWrite`; data flows from the register file through the ALU to data memory and back through the write-back mux — all in a single clock cycle.*
 
 See [**docs/single_cycle_top.md**](docs/single_cycle_top.md) for the fully
 labeled datapath and a step-by-step one-cycle flow.
@@ -108,7 +76,7 @@ RISC-V-Single-Cycle-SV/
 │   ├── single_cycle_top_tb.sv  # full-program integration test
 │   └── memfile.mem          #   the demo program (hex, one instr per line)
 ├── docs/                    # one Markdown page per module (+ images/)
-└── datapath_example/        # one Markdown page per instruction format
+└── instructions_type/       # one Markdown page per instruction format
 ```
 
 ---
@@ -131,13 +99,13 @@ RISC-V-Single-Cycle-SV/
 | Data memory | [data_memory.md](docs/data_memory.md) |
 | Single-cycle top | [single_cycle_top.md](docs/single_cycle_top.md) |
 
-**Instruction datapath walkthroughs** (in [`datapath_example/`](datapath_example)):
-[R-type](datapath_example/R-type.md) ·
-[I-type](datapath_example/I-type.md) ·
-[S-type](datapath_example/S-type.md) ·
-[B-type](datapath_example/B-type.md) ·
-[J-type](datapath_example/J-type.md) —
-start at the [folder index](datapath_example/README.md).
+**Instruction datapath walkthroughs** (in [`instructions_type/`](instructions_type)):
+[R-type](instructions_type/R-type.md) ·
+[I-type](instructions_type/I-type.md) ·
+[S-type](instructions_type/S-type.md) ·
+[B-type](instructions_type/B-type.md) ·
+[J-type](instructions_type/J-type.md) —
+start at the [folder index](instructions_type/README.md).
 
 ---
 

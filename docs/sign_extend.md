@@ -121,7 +121,7 @@ re-orderings.
 
 - Driven by: [Control Unit (top)](control_unit_top.md) via `imm_sel`
 - Types: [riscv_pkg](riscv_pkg.md)
-- Formats in action: [I-type](../datapath_example/I-type.md),
-  [S-type](../datapath_example/S-type.md),
-  [B-type](../datapath_example/B-type.md),
-  [J-type](../datapath_example/J-type.md)
+- Formats in action: [I-type](../instructions_type/I-type.md),
+  [S-type](../instructions_type/S-type.md),
+  [B-type](../instructions_type/B-type.md),
+  [J-type](../instructions_type/J-type.md)

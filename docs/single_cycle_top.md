@@ -180,5 +180,5 @@ Vivado's RTL schematic of the complete datapath and control unit wired together.
 
 - Every sub-module doc linked in the table above.
 - Per-instruction datapath walkthroughs:
-  [`datapath_example/`](../datapath_example/README.md)
+  [`instructions_type/`](../instructions_type/README.md)
 - Project overview and how to simulate: [README](../README.md)
